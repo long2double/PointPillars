@@ -21,18 +21,10 @@ def save_summary(writer, loss_dict, global_step, tag, lr=None, momentum=None):
 
 def main(args):
     setup_seed()
-    train_dataset = Kitti(data_root=args.data_root,
-                          split='train')
-    val_dataset = Kitti(data_root=args.data_root,
-                        split='val')
-    train_dataloader = get_dataloader(dataset=train_dataset, 
-                                      batch_size=args.batch_size, 
-                                      num_workers=args.num_workers,
-                                      shuffle=True)
-    val_dataloader = get_dataloader(dataset=val_dataset, 
-                                    batch_size=args.batch_size, 
-                                    num_workers=args.num_workers,
-                                    shuffle=False)
+    train_dataset = Kitti(data_root=args.data_root, split='train')
+    val_dataset = Kitti(data_root=args.data_root, split='val')
+    train_dataloader = get_dataloader(dataset=train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
+    val_dataloader = get_dataloader(dataset=val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
 
     if not args.no_cuda:
         pointpillars = PointPillars(nclasses=args.nclasses).cuda()
@@ -42,19 +34,9 @@ def main(args):
 
     max_iters = len(train_dataloader) * args.max_epoch
     init_lr = args.init_lr
-    optimizer = torch.optim.AdamW(params=pointpillars.parameters(), 
-                                  lr=init_lr, 
-                                  betas=(0.95, 0.99),
-                                  weight_decay=0.01)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,  
-                                                    max_lr=init_lr*10, 
-                                                    total_steps=max_iters, 
-                                                    pct_start=0.4, 
-                                                    anneal_strategy='cos',
-                                                    cycle_momentum=True, 
-                                                    base_momentum=0.95*0.895, 
-                                                    max_momentum=0.95,
-                                                    div_factor=10)
+    optimizer = torch.optim.AdamW(params=pointpillars.parameters(), lr=init_lr, betas=(0.95, 0.99), weight_decay=0.01)
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=init_lr*10, total_steps=max_iters, pct_start=0.4, anneal_strategy='cos', cycle_momentum=True, base_momentum=0.95*0.895, max_momentum=0.95, div_factor=10)
+    
     saved_logs_path = os.path.join(args.saved_path, 'summary')
     os.makedirs(saved_logs_path, exist_ok=True)
     writer = SummaryWriter(saved_logs_path)
@@ -77,12 +59,8 @@ def main(args):
             batched_pts = data_dict['batched_pts']
             batched_gt_bboxes = data_dict['batched_gt_bboxes']
             batched_labels = data_dict['batched_labels']
-            batched_difficulty = data_dict['batched_difficulty']
-            bbox_cls_pred, bbox_pred, bbox_dir_cls_pred, anchor_target_dict = \
-                pointpillars(batched_pts=batched_pts, 
-                             mode='train',
-                             batched_gt_bboxes=batched_gt_bboxes, 
-                             batched_gt_labels=batched_labels)
+            # batched_difficulty = data_dict['batched_difficulty']
+            bbox_cls_pred, bbox_pred, bbox_dir_cls_pred, anchor_target_dict = pointpillars(batched_pts=batched_pts, mode='train', batched_gt_bboxes=batched_gt_bboxes, batched_gt_labels=batched_labels)
             
             bbox_cls_pred = bbox_cls_pred.permute(0, 2, 3, 1).reshape(-1, args.nclasses)
             bbox_pred = bbox_pred.permute(0, 2, 3, 1).reshape(-1, 7)
@@ -197,10 +175,9 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parameters')
-    parser.add_argument('--data_root', default='/mnt/ssd1/lifa_rdata/det/kitti', 
-                        help='your data root for kitti')
+    parser.add_argument('--data_root', default='kitti', help='your data root for kitti')
     parser.add_argument('--saved_path', default='pillar_logs')
-    parser.add_argument('--batch_size', type=int, default=6)
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--nclasses', type=int, default=3)
     parser.add_argument('--init_lr', type=float, default=0.00025)
