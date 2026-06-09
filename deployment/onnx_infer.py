@@ -137,10 +137,10 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parameters')
-    parser.add_argument('--pc_path', help='your point cloud path')
+    parser.add_argument('--pc_path', default='dataset/demo_data/val/000134.bin', help='your point cloud path')
     parser.add_argument('--saved_path', default='infer_results/onnx.txt',
                         help='your saved path for comparision bewteen PyTorch, ONNX and TRT')
-    parser.add_argument('--onnx_path', default='../pretrained/model.onnx',
+    parser.add_argument('--onnx_path', default='pretrained/model.onnx',
                         help='your saved onnx path')
     parser.add_argument('--no_cuda', action='store_true',
                         help='whether to use cuda')

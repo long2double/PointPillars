@@ -32,6 +32,7 @@ def main(args):
     max_pillars = 40000
     pillars = torch.randn(max_pillars, 32, 4)
     coors_batch = torch.randint(0, 216, (max_pillars, 4))
+    coors_batch = coors_batch.to(torch.int32)
     coors_batch[:, 0] = 0
     npoints_per_pillar = torch.randint(0, 32, (max_pillars, ))
     npoints_per_pillar = npoints_per_pillar.to(torch.int32)
@@ -52,8 +53,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parameters')
-    parser.add_argument('--ckpt', default='../pretrained/epoch_160.pth', help='your checkpoint for kitti')
-    parser.add_argument('--saved_onnx_path', default='../pretrained/model.onnx',
+    parser.add_argument('--ckpt', default='pretrained/epoch_160.pth', help='your checkpoint for kitti')
+    parser.add_argument('--saved_onnx_path', default='pretrained/model.onnx',
                         help='your saved onnx path')
     parser.add_argument('--no_cuda', action='store_true',
                         help='whether to use cuda')

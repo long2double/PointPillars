@@ -1,36 +1,25 @@
 # 设置CMake的最小版本要求
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 # 设置项目名称
 project(trt_infer LANGUAGES CXX CUDA)
 
 # 设置C++标准
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin/nvcc")
+set(CMAKE_CUDA_ARCHITECTURES "120")
 
 # 查找CUDA库
-find_package(CUDA REQUIRED)
+include_directories("/usr/local/cuda/include")
+link_directories("/usr/local/cuda/lib64")
 
-# 如果找到了CUDA，打印一些消息
-if(CUDA_FOUND)
-    message(STATUS "CUDA library status:")
-    message(STATUS "    version: ${CUDA_VERSION}")
-    message(STATUS "    libraries: ${CUDA_LIBRARIES}")
-    message(STATUS "    include path: ${CUDA_INCLUDE_DIRS}")
-endif()
+include_directories("/usr/local/TensorRT-10.16.1.11/include")
+link_directories("/usr/local/TensorRT-10.16.1.11/lib")
 
-# 设置TensorRT库的路径
-set(TENSORRT_ROOT "/home/lifa/Drivers/TensorRT-7.2.3.4")
-
-# 将include目录加入到编译器的头文件搜索路径之下
-# 添加TensorRT和CUDA头文件的搜索路径
-include_directories(include ${CUDA_INCLUDE_DIRS} ${TENSORRT_ROOT}/include)
-
-# 创建一个变量，包含所有的源文件
-set(SOURCE_FILES trt_infer.cpp src/voxelization_trt.cpp src/utils.cpp 
-                 src/nms_trt.cpp src/voxelization_trt.cu)
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+file(GLOB_RECURSE infer_src ${CMAKE_CURRENT_SOURCE_DIR}/src/*)
 # 指定生成目标
-add_executable(trt_infer ${SOURCE_FILES})
+add_executable(trt_infer ${infer_src} trt_infer.cpp)
 
 # 链接库
-target_link_libraries(trt_infer nvinfer nvinfer_plugin ${CUDA_LIBRARIES})
+target_link_libraries(trt_infer cudart nvinfer nvinfer_plugin ${CUDA_LIBRARIES})
